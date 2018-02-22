@@ -33,10 +33,14 @@ class PwnedPasswords
 
             $testHash = $passwordPrefix . trim(strtoupper($passwordLine[0]));
 
+            // Check the password hash and see if it matches.
             if ($testHash === $passwordHash) {
-                if (intval(trim($passwordLine[0])) > $maxUsage) {
+                // The password has been found in the list. Now let's examine if it's been used more than our threshold allows.
+                if (intval($passwordLine[1]) > $maxUsage) {
                     return true;
                 }
+
+                return false;
             }
         }
 
