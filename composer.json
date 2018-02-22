@@ -1,6 +1,7 @@
 {
     "name": "RonMaxweb/PwnedPasswords",
     "description": "A library to query Troy Hunt's Pwned Passwords service to see whether or not a password has been included in a public breach.",
+    "keywords": ["password", "passwords", "security"],
     "type": "library",
     "license": "MIT",
     "authors": [
@@ -14,5 +15,7 @@
             "RonMaxweb\\PwnedPasswords" : "src"
         }
     },
-    "require": {}
+    "require": {
+        "php": ">=5.0.0"
+    }
 }
