@@ -11,8 +11,8 @@
         }
     ],
     "autoload": {
-        "psr-0" : {
-            "RonMaxweb\\PwnedPasswords" : "src"
+        "psr-4" : {
+            "RonMaxweb\\": "src/RonMaxweb/"
         }
     },
     "require": {
