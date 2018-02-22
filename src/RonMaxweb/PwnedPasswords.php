@@ -1,6 +1,6 @@
 <?php
 
-namespace RonMaxweb\PwnedPasswords;
+namespace RonMaxweb;
 
 class PwnedPasswords
 {
