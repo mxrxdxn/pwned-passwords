@@ -6,7 +6,7 @@ class PwnedPasswords
 {
     protected $apiURL = 'https://api.pwnedpasswords.com';
 
-    public function isInsecure($password, $maxUsage = 1)
+    public function getCount($password)
     {
         // We need to get the SHA1 of the password first before we send it to the Pwned Passwords API.
         $passwordHash = strtoupper(sha1($password));
@@ -16,7 +16,7 @@ class PwnedPasswords
 
         // Now we can fire it off to the API.
         $apiURL = $this->apiURL . '/range/' . $passwordPrefix;
-        $ch     = curl_init($apiURL);
+        $ch = curl_init($apiURL);
 
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
@@ -35,15 +35,18 @@ class PwnedPasswords
 
             // Check the password hash and see if it matches.
             if ($testHash === $passwordHash) {
-                // The password has been found in the list. Now let's examine if it's been used more than our threshold allows.
-                if (intval($passwordLine[1]) > $maxUsage) {
-                    return true;
-                }
-
-                return false;
+                // The password has been found in $passwordArray - Return the amount
+                return intval($passwordLine[1]);
             }
         }
 
-        return false;
+        // Our password hasn't been included.
+        return 0;
+    }
+
+    public function isInsecure($password, $maxUsage = 1)
+    {
+        // This is just a shorthand to remain backwards compatible. Calls the getCount function and compares the result with $maxUsage
+        return (self::getCount($password) > $maxUsage);
     }
 }

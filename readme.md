@@ -37,5 +37,21 @@ var_dump($pp->isInsecure('password', 5));
 ```
 The method will now return true if it has been found in the PwnedPasswords API more than 5 times.
 
+
+If you want to build your own thresholds (Ex. display a warning if the password has been found more than once and an error if more than 5x) you can call the `isInsecure` method like below.
+```php
+<?php
+
+require_once('vendor/autoload.php');
+
+$pp = new PwnedPasswords\PwnedPasswords;
+
+$count = $pp->getCount('password');
+
+var_dump($count);
+```
+The method will return the amount the password has been found in the PwnedPasswords API.
+
+
 # Issues
 Please feel free to use the Github issue tracker to post any issues you have with this library.
