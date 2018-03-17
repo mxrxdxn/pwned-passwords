@@ -2,6 +2,8 @@
 
 namespace PwnedPasswords;
 
+use RuntimeException;
+
 class PwnedPasswords
 {
     const API = 'https://api.pwnedpasswords.com/range/';
@@ -41,6 +43,12 @@ class PwnedPasswords
         curl_setopt( $ch, CURLOPT_HTTPHEADER, [ 'method' => 'GET' ] );
         curl_setopt( $ch, CURLOPT_TIMEOUT, 10 );
         $response = curl_exec($ch);
+        
+        if(curl_errno($ch) !== false) {
+            $error = curl_error($ch);
+            curl_close($ch);
+            throw new RuntimeException($error);
+        }
         curl_close($ch);
 
         // We have our results - now let's loop them all.
