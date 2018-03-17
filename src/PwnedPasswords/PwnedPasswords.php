@@ -4,39 +4,40 @@ namespace PwnedPasswords;
 
 class PwnedPasswords
 {
-    protected $apiURL = 'https://api.pwnedpasswords.com';
+    const API = 'https://api.pwnedpasswords.com/range/';
 
-    public function getCount($password)
+    public function getCount(string $password): int
     {
         // We need to get the SHA1 of the password first before we send it to the Pwned Passwords API.
-        $passwordHash = strtoupper(sha1($password));
+        $password = strtoupper(sha1($password));
 
         // We only need the first five characters.
-        $passwordPrefix = substr($passwordHash, 0, 5);
+        $prefix = substr($password, 0, 5);
 
         // Now we can fire it off to the API.
-        $apiURL = $this->apiURL . '/range/' . $passwordPrefix;
-        $ch = curl_init($apiURL);
+        $url = static::API . $prefix;
 
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        $passwordList = curl_exec($ch);
-
+        $ch = curl_init();
+        curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt( $ch, CURLOPT_URL, $url );
+        curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, FALSE );
+        curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 0 );
+        curl_setopt( $ch, CURLOPT_RETURNTRANSFER, TRUE );
+        curl_setopt( $ch, CURLOPT_HTTPHEADER, [ 'method' => 'GET' ] );
+        curl_setopt( $ch, CURLOPT_TIMEOUT, 10 );
+        $response = curl_exec($ch);
         curl_close($ch);
 
         // We have our results - now let's loop them all.
-        $passwordArray = explode(PHP_EOL, $passwordList);
+        $result = explode(PHP_EOL, $response);
 
-        foreach ($passwordArray as $password) {
+        foreach ($result as $line) {
             // We need to extract the password hash.
-            $passwordLine = explode(':', $password);
-
-            $testHash = $passwordPrefix . trim(strtoupper($passwordLine[0]));
-
+            list($hash,$count) = explode(':', $line);
             // Check the password hash and see if it matches.
-            if ($testHash === $passwordHash) {
-                // The password has been found in $passwordArray - Return the amount
-                return intval($passwordLine[1]);
+            if (trim(strtoupper($prefix . $hash)) === strtoupper($password)) {
+                // The password has been found in the result - Return the count
+                return (int) $count;
             }
         }
 
@@ -44,9 +45,17 @@ class PwnedPasswords
         return 0;
     }
 
-    public function isInsecure($password, $maxUsage = 1)
+    /**
+     * This is just a shorthand to remain backwards compatible.
+     * Calls the getCount function and compares the result with $maxUsage
+     * @deprecated
+     * @param string $password
+     * @param int $maxUsage
+     * @return bool
+     */
+    public function isInsecure(string $password,int $maxUsage = 0): bool
     {
-        // This is just a shorthand to remain backwards compatible. Calls the getCount function and compares the result with $maxUsage
-        return (self::getCount($password) > $maxUsage);
+        $count = $this->getCount($password);
+        return $count > $maxUsage;
     }
 }
