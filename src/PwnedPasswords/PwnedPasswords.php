@@ -51,12 +51,11 @@ class PwnedPasswords
             list($hash,$count) = explode(':', $line);
             // Check the password hash and see if it matches.
             if (trim(strtoupper($prefix . $hash)) === $password) {
-                // The password has been found in the result - Return the count
+                // The password has been found in the result 
                 $this->cache[$password] = (int) $count;
             }
         }
 
-        // Our password hasn't been included.
         return $this->cache[$password];
     }
 
