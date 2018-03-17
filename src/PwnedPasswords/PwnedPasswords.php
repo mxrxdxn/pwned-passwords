@@ -68,16 +68,11 @@ class PwnedPasswords
     }
 
     /**
-     * This is just a shorthand to remain backwards compatible.
-     * Calls the getCount function and compares the result with $maxUsage
-     * @deprecated
      * @param string $password
-     * @param int $maxUsage
      * @return bool
      */
-    public function isInsecure(string $password,int $maxUsage = 0): bool
+    public function isInsecure(string $password): bool
     {
-        $count = $this->getCount($password);
-        return $count > $maxUsage;
+        return $this->getCount($password) > 0 ;
     }
 }
