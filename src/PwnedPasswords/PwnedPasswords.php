@@ -27,7 +27,7 @@ class PwnedPasswords
     */
     private $options;
     
-    public function __construct(int $method = null,array $curlOptions = []) 
+    public function __construct($method = null,array $curlOptions = []) 
     {
         $this->cache = [];   
         $this->options = [
