@@ -6,11 +6,26 @@ class PwnedPasswords
 {
     const API = 'https://api.pwnedpasswords.com/range/';
 
+    private $cache;
+    
+    public function __construct() 
+    {
+        $this->cache = [];   
+    }
+    
     public function getCount(string $password): int
     {
         // We need to get the SHA1 of the password first before we send it to the Pwned Passwords API.
         $password = strtoupper(sha1($password));
 
+        // check if the password have been already check 
+        if(isset($this->cache[$password])) {
+            // return result from cache
+            return $this->cache[$password]);   
+        }
+        
+        $this->cache[$password] = 0;
+        
         // We only need the first five characters.
         $prefix = substr($password, 0, 5);
 
@@ -35,14 +50,14 @@ class PwnedPasswords
             // We need to extract the password hash.
             list($hash,$count) = explode(':', $line);
             // Check the password hash and see if it matches.
-            if (trim(strtoupper($prefix . $hash)) === strtoupper($password)) {
+            if (trim(strtoupper($prefix . $hash)) === $password) {
                 // The password has been found in the result - Return the count
-                return (int) $count;
+                $this->cache[$password] = (int) $count;
             }
         }
 
         // Our password hasn't been included.
-        return 0;
+        return $this->cache[$password];
     }
 
     /**
