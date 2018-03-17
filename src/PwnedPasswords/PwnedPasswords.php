@@ -44,7 +44,7 @@ class PwnedPasswords
         curl_setopt( $ch, CURLOPT_TIMEOUT, 10 );
         $response = curl_exec($ch);
         
-        if(curl_errno($ch) !== false) {
+        if(curl_errno($ch) !== 0) {
             $error = curl_error($ch);
             curl_close($ch);
             throw new RuntimeException($error);
