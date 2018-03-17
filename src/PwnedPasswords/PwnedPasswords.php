@@ -55,7 +55,19 @@ class PwnedPasswords
     
     private function fetchFile(string $file): string
     {
-        return file_get_contents($file);   
+		$opts = [
+			'http'=> [
+				'method'=>"GET",
+			]
+		];
+		
+		$response = file_get_contents($file, false, stream_context_create($opts));   
+		
+		if($response === false) {
+			throw new RuntimeException('Failed to open stream.');
+		}
+		
+		return (string) $response;
     }
     
     private function fetchCurl(string $url): string 
@@ -65,52 +77,45 @@ class PwnedPasswords
         curl_setopt( $ch, CURLOPT_URL, $url );
         curl_setopt( $ch, CURLOPT_HTTPHEADER, [ 'method' => 'GET' ] );
         curl_setopt( $ch, CURLOPT_TIMEOUT, 10 );
-        foreach($this->options['curl'] as $option => $value) {
+        
+		foreach($this->options['curl'] as $option => $value) {
             curl_setopt( $ch, $option, $value);   
         }
-        $response = curl_exec($ch);
-        if(curl_errno($ch) !== 0) {
+        
+		$response = curl_exec($ch);
+        
+		if(curl_errno($ch) !== 0) {
             $error = curl_error($ch);
             curl_close($ch);
             throw new RuntimeException($error);
         }
-        curl_close($ch);
-        return $response;
+        
+		curl_close($ch);
+		
+		return $response;
     }
     
     public function getCount(string $password): int
     {
-        // We need to get the SHA1 of the password first before we send it to the Pwned Passwords API.
         $password = strtoupper(sha1($password));
-
-        // check if the password have been already check 
-        if(isset($this->cache[$password])) {
-            // return result from cache
+        
+		if(isset($this->cache[$password])) {
             return $this->cache[$password];   
         }
         
-        $this->cache[$password] = 0;
-        
-        // We only need the first five characters.
+		$this->cache[$password] = 0;
         $prefix = substr($password, 0, 5);
-
-        // Now we can fire it off to the API.
         $url = static::API . $prefix;
-
         $result = explode(PHP_EOL, $this->fetch($url));
-
-        // We have our results - now let's loop them all.
-        foreach ($result as $line) {
-            // We need to extract the password hash.
+        
+		foreach ($result as $line) {
             list($hash,$count) = explode(':', $line);
-            // Check the password hash and see if it matches.
             if (trim(strtoupper($prefix . $hash)) === $password) {
-                // The password has been found in the result 
                 $this->cache[$password] = (int) $count;
             }
         }
 
-        return $this->cache[$password];
+		return $this->cache[$password];
     }
 
     /**
@@ -122,6 +127,7 @@ class PwnedPasswords
 		if( $password === '') {
 			throw new InvaliArgumentException('password cannot be empty.');
 		}
+		
         return $this->getCount($password) > 0 ;
     }
 }
