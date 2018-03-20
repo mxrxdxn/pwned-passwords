@@ -25,13 +25,30 @@ class PwnedPasswords
     */
     private $options;
     
-    public function __construct($method = null,array $curlOptions = []) 
+    public function __construct() 
     {
-        $this->cache = [];   
-        $this->options = [
-            'method' => $method, 
-            'curl' => $curlOptions
-        ];
+        $this->cache = [];
+    }
+	
+    public function setMethod($method) 
+    {
+	$this->options['method'] = $method;
+	
+	return $this;
+    }
+	
+    public function setCurlOptions(array $options = []) 
+    {
+    	$this->options['curl'] = $options;
+
+	return $this;
+    }
+	
+    public function clearCache() 
+    {
+        $this->cache = [];
+	    
+	return $this;
     }
     
     private function fetch(string $url): string
