@@ -3,8 +3,6 @@
 namespace PwnedPasswords;
 
 use RuntimeException;
-
-use RuntimeException;
 use InvaliArgumentException;
 
 class PwnedPasswords
@@ -95,11 +93,17 @@ class PwnedPasswords
 		return $response;
     }
     
-    public function getCount(string $password): int
+    public function getCount(string $input): int
     {
-        $password = strtoupper(sha1($password));
+        if( $input === '') {
+			throw new InvaliArgumentException('password cannot be empty.');
+		}
         
-		if(isset($this->cache[$password])) {
+        $password = strtoupper(sha1($input));
+		
+        unset($input);
+        
+        if(isset($this->cache[$password])) {
             return $this->cache[$password];   
         }
         
@@ -124,12 +128,6 @@ class PwnedPasswords
      */
     public function isInsecure(string $password): bool
     {
-		if( $password === '') {
-			throw new InvaliArgumentException('password cannot be empty.');
-		}
-		
         return $this->getCount($password) > 0 ;
     }
 }
-
-
