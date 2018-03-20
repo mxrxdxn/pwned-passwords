@@ -49,23 +49,10 @@ if($insecure) {
 By default `PwnedPasswords` uses `curl_*` to fetch result, and `file_get_contents` if the curl request fails, you can specify  the method to use like this : 
 
 ```php
-use PwnedPasswords;
-/**
-* uses curl, and file_get_contents if curl request failed
-* @throws \RuntimeException if both methods failed
-*/
-$pp = new PwnedPasswords; 
+$pp = new PwnedPasswords\PwnedPasswords; 
 
-/**
-* uses curl
-* @throws \RuntimeException if both curl request failed
-*/
 $pp->setMethod(PwnedPasswords::CURL); 
 
-/**
-* uses file_get_contents
-* @throws \RuntimeException if failed to open stream
-*/
 $pp->setMethod(PwnedPasswords::FILE); 
 ```
 you can also supply the curl options.
@@ -85,6 +72,5 @@ $options = [
 $pp->setCurlOptions($options);
 
 ```
-
 # Issues
 Please feel free to use the Github issue tracker to post any issues you have with this library.
