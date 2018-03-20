@@ -60,19 +60,20 @@ $pp = new PwnedPasswords;
 * uses curl
 * @throws \RuntimeException if both curl request failed
 */
-$pp = new PwnedPasswords(PwnedPasswords::CURL); 
+$pp->setMethod(PwnedPasswords::CURL); 
 
 /**
 * uses file_get_contents
 * @throws \RuntimeException if failed to open stream
 */
-$pp = new PwnedPasswords(PwnedPasswords::FILE); 
+$pp->setMethod(PwnedPasswords::FILE); 
 ```
 you can also supply the curl options.
 example : 
 
 ```php
-use PwnedPasswords;
+
+...
 
 $options = [
   CURLOPT_CERTINFO => true,
@@ -81,9 +82,8 @@ $options = [
   CURLOPT_SSL_VERIFYSTATUS => true
 ];
 
-$pp = new PwnedPasswords(null,$options);
-// or 
-$pp = new PwnedPasswords(PwnedPasswords::CURL,$options);
+$pp->setCurlOptions($options);
+
 ```
 
 # Issues
