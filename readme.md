@@ -46,7 +46,7 @@ if($insecure) {
 }
 ```
 
-By default `PwnedPasswords` uses `curl_*` to fetch result, and `file_get_contents` if the curl request fails, you can spesify the method to use : 
+By default `PwnedPasswords` uses `curl_*` to fetch result, and `file_get_contents` if the curl request fails, you can specify  the method to use like this : 
 
 ```php
 use PwnedPasswords;
@@ -70,6 +70,7 @@ $pp = new PwnedPasswords(PwnedPasswords::FILE);
 ```
 you can also supply the curl options.
 example : 
+
 ```php
 use PwnedPasswords;
 
