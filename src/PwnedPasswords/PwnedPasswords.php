@@ -2,51 +2,132 @@
 
 namespace PwnedPasswords;
 
+use RuntimeException;
+use InvaliArgumentException;
+
 class PwnedPasswords
 {
-    protected $apiURL = 'https://api.pwnedpasswords.com';
-
-    public function getCount($password)
+    const API = 'https://api.pwnedpasswords.com/range/';
+	
+    const CURL = 2;
+    
+    const FILE = 4;
+    
+    /**
+    * cached result 
+    * @var array $cache
+    */
+    private $cache;
+    
+    /**
+    * 
+    * @var array $options 
+    */
+    private $options;
+    
+    public function __construct($method = null,array $curlOptions = []) 
     {
-        // We need to get the SHA1 of the password first before we send it to the Pwned Passwords API.
-        $passwordHash = strtoupper(sha1($password));
-
-        // We only need the first five characters.
-        $passwordPrefix = substr($passwordHash, 0, 5);
-
-        // Now we can fire it off to the API.
-        $apiURL = $this->apiURL . '/range/' . $passwordPrefix;
-        $ch = curl_init($apiURL);
-
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        $passwordList = curl_exec($ch);
-
-        curl_close($ch);
-
-        // We have our results - now let's loop them all.
-        $passwordArray = explode(PHP_EOL, $passwordList);
-
-        foreach ($passwordArray as $password) {
-            // We need to extract the password hash.
-            $passwordLine = explode(':', $password);
-
-            $testHash = $passwordPrefix . trim(strtoupper($passwordLine[0]));
-
-            // Check the password hash and see if it matches.
-            if ($testHash === $passwordHash) {
-                // The password has been found in $passwordArray - Return the amount
-                return intval($passwordLine[1]);
+        $this->cache = [];   
+        $this->options = [
+            'method' => $method, 
+            'curl' => $curlOptions
+        ];
+    }
+    
+    private function fetch(string $url): string
+    {
+	if($this->options['method'] === null) {
+		try {
+			return $this->fetchCurl($url);
+		} catch (RuntimeException $e) {
+			return $this->fetchFile($url);
+		}
+	} elseif($this->options['method'] === static::CURL) {   
+		return $this->fetchCurl($url);
+	} elseif ($this->options['method'] === static::FILE) {
+            return $this->fetchFile($url);
+        } else {
+            throw new InvaliArgumentException("Unsupported method {$this->options['method']}");   
+        }
+    }
+    
+    private function fetchFile(string $file): string
+    {
+	$opts = [
+		'http'=> [
+			'method'=>"GET",
+		]
+	];
+		
+	$response = file_get_contents($file, false, stream_context_create($opts));   
+		
+	if($response === false) {
+		throw new RuntimeException('Failed to open stream.');
+	}
+		
+	return (string) $response;
+    }
+    
+    private function fetchCurl(string $url): string 
+    {
+        $ch = curl_init();
+        curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt( $ch, CURLOPT_URL, $url );
+        curl_setopt( $ch, CURLOPT_HTTPHEADER, [ 'method' => 'GET' ] );
+        curl_setopt( $ch, CURLOPT_TIMEOUT, 10 );
+        
+	foreach($this->options['curl'] as $option => $value) {
+            curl_setopt( $ch, $option, $value);   
+        }
+        
+	$response = curl_exec($ch);
+        
+	if(curl_errno($ch) !== 0) {
+            $error = curl_error($ch);
+            curl_close($ch);
+            throw new RuntimeException($error);
+        }
+        
+	curl_close($ch);	
+	
+	return $response;
+    }
+    
+    public function getCount(string $input): int
+    {
+        if( $input === '') {
+		throw new InvaliArgumentException('password cannot be empty.');
+	}
+        
+        $password = strtoupper(sha1($input));
+		
+        unset($input);
+        
+        if(isset($this->cache[$password])) {
+            return $this->cache[$password];   
+        }
+        
+	$this->cache[$password] = 0;
+        $prefix = substr($password, 0, 5);
+        $url = static::API . $prefix;
+        $result = explode(PHP_EOL, $this->fetch($url));
+        
+	foreach ($result as $line) {
+            list($hash,$count) = explode(':', $line);
+            if (trim(strtoupper($prefix . $hash)) === $password) {
+                $this->cache[$password] = (int) $count;
             }
         }
 
-        // Our password hasn't been included.
-        return 0;
+	return $this->cache[$password];
     }
 
-    public function isInsecure($password, $maxUsage = 1)
+    /**
+     * @param string $password
+     * @return bool
+     */
+    public function isInsecure(string $password): bool
     {
-        // This is just a shorthand to remain backwards compatible. Calls the getCount function and compares the result with $maxUsage
-        return (self::getCount($password) > $maxUsage);
+        return $this->getCount($password) > 0 ;
     }
 }
