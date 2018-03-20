@@ -36,15 +36,15 @@ class PwnedPasswords
     
     private function fetch(string $url): string
     {
-		if($this->options['method'] === null) {
-			try {
-				return $this->fetchCurl($url);
-			} catch (RuntimeException $e) {
-				return $this->fetchFile($url);
-			}
-		} elseif($this->options['method'] === static::CURL) {   
+	if($this->options['method'] === null) {
+		try {
 			return $this->fetchCurl($url);
-		} elseif ($this->options['method'] === static::FILE) {
+		} catch (RuntimeException $e) {
+			return $this->fetchFile($url);
+		}
+	} elseif($this->options['method'] === static::CURL) {   
+		return $this->fetchCurl($url);
+	} elseif ($this->options['method'] === static::FILE) {
             return $this->fetchFile($url);
         } else {
             throw new InvaliArgumentException("Unsupported method {$this->options['method']}");   
@@ -53,19 +53,19 @@ class PwnedPasswords
     
     private function fetchFile(string $file): string
     {
-		$opts = [
-			'http'=> [
-				'method'=>"GET",
-			]
-		];
+	$opts = [
+		'http'=> [
+			'method'=>"GET",
+		]
+	];
 		
-		$response = file_get_contents($file, false, stream_context_create($opts));   
+	$response = file_get_contents($file, false, stream_context_create($opts));   
 		
-		if($response === false) {
-			throw new RuntimeException('Failed to open stream.');
-		}
+	if($response === false) {
+		throw new RuntimeException('Failed to open stream.');
+	}
 		
-		return (string) $response;
+	return (string) $response;
     }
     
     private function fetchCurl(string $url): string 
@@ -76,28 +76,28 @@ class PwnedPasswords
         curl_setopt( $ch, CURLOPT_HTTPHEADER, [ 'method' => 'GET' ] );
         curl_setopt( $ch, CURLOPT_TIMEOUT, 10 );
         
-		foreach($this->options['curl'] as $option => $value) {
+	foreach($this->options['curl'] as $option => $value) {
             curl_setopt( $ch, $option, $value);   
         }
         
-		$response = curl_exec($ch);
+	$response = curl_exec($ch);
         
-		if(curl_errno($ch) !== 0) {
+	if(curl_errno($ch) !== 0) {
             $error = curl_error($ch);
             curl_close($ch);
             throw new RuntimeException($error);
         }
         
-		curl_close($ch);
-		
-		return $response;
+	curl_close($ch);	
+	
+	return $response;
     }
     
     public function getCount(string $input): int
     {
         if( $input === '') {
-			throw new InvaliArgumentException('password cannot be empty.');
-		}
+		throw new InvaliArgumentException('password cannot be empty.');
+	}
         
         $password = strtoupper(sha1($input));
 		
@@ -107,19 +107,19 @@ class PwnedPasswords
             return $this->cache[$password];   
         }
         
-		$this->cache[$password] = 0;
+	$this->cache[$password] = 0;
         $prefix = substr($password, 0, 5);
         $url = static::API . $prefix;
         $result = explode(PHP_EOL, $this->fetch($url));
         
-		foreach ($result as $line) {
+	foreach ($result as $line) {
             list($hash,$count) = explode(':', $line);
             if (trim(strtoupper($prefix . $hash)) === $password) {
                 $this->cache[$password] = (int) $count;
             }
         }
 
-		return $this->cache[$password];
+	return $this->cache[$password];
     }
 
     /**
