@@ -28,6 +28,10 @@ class PwnedPasswords
     public function __construct() 
     {
         $this->cache = [];
+    	$this->options = [
+		'curl' => [],
+		'method' => null
+	];
     }
 	
     public function setMethod($method) 
