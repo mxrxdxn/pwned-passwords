@@ -4,7 +4,7 @@ A library to query Troy Hunt's Pwned Passwords service to see whether or not a p
 
 # Requirements
 
- - PHP >= 5.0.0
+ - PHP >= 7.1.3
  - ext-curl
 
 # Installation
