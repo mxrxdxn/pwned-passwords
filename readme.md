@@ -15,43 +15,62 @@ Installing PwnedPasswords is made easy via Composer. Just require the package us
 # Usage
 To use the library, you can do something along the lines of the following.
 ```php
-<?php
-
 require_once('vendor/autoload.php');
 
 $pp = new PwnedPasswords\PwnedPasswords;
 
-var_dump($pp->isInsecure('password'));
+$password = '123456789';
+
+$insecure = $pp->isInsecure($password);
+
+var_dump($insecure);
 ```
 The `isInsecure` method will return true if the password has been found in the PwnedPasswords API, and false if not.
 
-You can also check if passwords have been used more than *x* times by supplying a second argument to the `isInsecure` method as below.
-```php
-<?php
-
-require_once('vendor/autoload.php');
-
-$pp = new PwnedPasswords\PwnedPasswords;
-
-var_dump($pp->isInsecure('password', 5));
-```
-The method will now return true if it has been found in the PwnedPasswords API more than 5 times.
-
-
 If you want to build your own thresholds (Ex. display a warning if the password has been found more than once and an error if more than 5x) you can call the `isInsecure` method like below.
 ```php
-<?php
-
-require_once('vendor/autoload.php');
-
 $pp = new PwnedPasswords\PwnedPasswords;
 
-$count = $pp->getCount('password');
+$password = '123456789';
 
-var_dump($count);
+$insecure = $pp->isInsecure($password);
+
+var_dump($insecure);
+
+if($insecure) {
+  $count = $pp->getCount($password);
+  echo 'Oh no — pwned!' . "\n";
+  echo sprintf('This password has been seen %d time%s before.',$count,($count > 1 ? 's' : ''));
+} else {
+  echo 'All good !';
+}
 ```
-The method will return the amount the password has been found in the PwnedPasswords API.
 
+By default `PwnedPasswords` uses `curl_*` to fetch result, and `file_get_contents` if the curl request fails, you can specify  the method to use like this : 
 
+```php
+$pp = new PwnedPasswords\PwnedPasswords; 
+
+$pp->setMethod(PwnedPasswords::CURL); 
+
+$pp->setMethod(PwnedPasswords::FILE); 
+```
+you can also supply the curl options.
+example : 
+
+```php
+
+...
+
+$options = [
+  CURLOPT_CERTINFO => true,
+  CURLOPT_FRESH_CONNECT => true,
+  CURLOPT_SSL_VERIFYPEER => true,
+  CURLOPT_SSL_VERIFYSTATUS => true
+];
+
+$pp->setCurlOptions($options);
+
+```
 # Issues
 Please feel free to use the Github issue tracker to post any issues you have with this library.

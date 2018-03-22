@@ -1,5 +1,5 @@
 {
-    "name": "ron-maxweb/pwned-passwords",
+    "name": "azjezz/pwned-passwords",
     "description": "A library to query Troy Hunt's Pwned Passwords service to see whether or not a password has been included in a public breach.",
     "keywords": ["password", "passwords", "security"],
     "type": "library",
@@ -8,6 +8,10 @@
         {
             "name": "Ron Marsden",
             "email": "rm@maxwebsolutions.com"
+        },
+        {
+            "name": "Saif Eddin Gmati (azjezz)",
+            "email": "azjezz2@gmail.com"
         }
     ],
     "autoload": {
@@ -16,7 +20,7 @@
         }
     },
     "require": {
-        "php": ">=5.0.0",
+        "php": ">=7.0.0",
         "ext-curl": "*"
     }
 }
