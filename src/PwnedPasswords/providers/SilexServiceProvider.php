@@ -1,8 +1,9 @@
 <?php
 
 
-namespace PwnedPasswords;
+namespace PwnedPasswords\Providers;
 
+use PwnedPasswords\PwnedPasswords;
 use Pimple\Container;
 use Pimple\ServiceProviderInterface;
 
