@@ -1,3 +1,5 @@
+# Important Notice
+[Please be aware that development of this library has now migrated to Bitbucket.](https://bitbucket.org/liam-maxweb/pwned-passwords/src/master/)
 
 # PwnedPasswords
 A library to query Troy Hunt's Pwned Passwords service to see whether or not a password has been included in a public breach.
