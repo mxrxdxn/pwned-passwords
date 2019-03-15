@@ -1,5 +1,5 @@
 {
-  "name": "ron-maxweb/pwned-passwords",
+  "name": "mxrxdxn/pwned-passwords",
   "description": "A library to query Troy Hunt's Pwned Passwords service to see whether or not a password has been included in a public breach.",
   "keywords": ["password", "passwords", "security"],
   "type": "library",
