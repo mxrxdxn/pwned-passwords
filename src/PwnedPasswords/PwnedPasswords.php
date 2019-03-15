@@ -2,153 +2,55 @@
 
 namespace PwnedPasswords;
 
-use RuntimeException;
-use InvaliArgumentException;
+use PwnedPasswords\Exceptions\InvalidPasswordException;
+use PwnedPasswords\Exceptions\InvalidResponseException;
 
 class PwnedPasswords
 {
-    const API = 'https://api.pwnedpasswords.com/range/';
-	
-    const CURL = 2;
-    
-    const FILE = 4;
-    
-    /**
-    * cached result 
-    * @var array $cache
-    */
-    private $cache;
-    
-    /**
-    * 
-    * @var array $options 
-    */
-    private $options;
-    
-    public function __construct() 
-    {
-        $this->cache = [];
-    	$this->options = [
-		'curl' => [],
-		'method' => null
-	];
-    }
-	
-    public function setMethod($method) 
-    {
-	$this->options['method'] = $method;
-	
-	return $this;
-    }
-	
-    public function setCurlOptions(array $options = []) 
-    {
-    	$this->options['curl'] = $options;
+    protected $baseUrl = "https://api.pwnedpasswords.com";
 
-	return $this;
-    }
-	
-    public function clearCache() 
+    public function isPwned(string $password, bool $getHits = false)
     {
-        $this->cache = [];
-	    
-	return $this;
-    }
-    
-    private function fetch(string $url): string
-    {
-	if($this->options['method'] === null) {
-		try {
-			return $this->fetchCurl($url);
-		} catch (RuntimeException $e) {
-			return $this->fetchFile($url);
-		}
-	} elseif($this->options['method'] === static::CURL) {   
-		return $this->fetchCurl($url);
-	} elseif ($this->options['method'] === static::FILE) {
-            return $this->fetchFile($url);
-        } else {
-            throw new InvaliArgumentException("Unsupported method {$this->options['method']}");   
+        if (empty($password)) {
+            throw new InvalidPasswordException("There was no password to check.");
         }
-    }
-    
-    private function fetchFile(string $file): string
-    {
-	$opts = [
-		'http'=> [
-			'method'=>"GET",
-		]
-	];
-		
-	$response = file_get_contents($file, false, stream_context_create($opts));   
-		
-	if($response === false) {
-		throw new RuntimeException('Failed to open stream.');
-	}
-		
-	return (string) $response;
-    }
-    
-    private function fetchCurl(string $url): string 
-    {
-        $ch = curl_init();
-        curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt( $ch, CURLOPT_URL, $url );
-        curl_setopt( $ch, CURLOPT_HTTPHEADER, [ 'method' => 'GET' ] );
-        curl_setopt( $ch, CURLOPT_TIMEOUT, 10 );
-        
-	foreach($this->options['curl'] as $option => $value) {
-            curl_setopt( $ch, $option, $value);   
+
+        $client = $this->getGuzzleClient();
+
+        $hashedPassword = strtoupper(sha1($password));
+        $chars          = substr($hashedPassword, 0, 5);
+
+        $response = $client->get(sprintf('/range/%s', $chars));
+
+        if ($response->getStatusCode() !== 200) {
+            throw new InvalidResponseException(sprintf("Invalid status code returned from API request (%s), expected 200.", $response->getStatusCode()));
         }
-        
-	$response = curl_exec($ch);
-        
-	if(curl_errno($ch) !== 0) {
-            $error = curl_error($ch);
-            curl_close($ch);
-            throw new RuntimeException($error);
-        }
-        
-	curl_close($ch);	
-	
-	return $response;
-    }
-    
-    public function getCount(string $input): int
-    {
-        if( $input === '') {
-		throw new InvaliArgumentException('password cannot be empty.');
-	}
-        
-        $password = strtoupper(sha1($input));
-		
-        unset($input);
-        
-        if(isset($this->cache[$password])) {
-            return $this->cache[$password];   
-        }
-        
-	$this->cache[$password] = 0;
-        $prefix = substr($password, 0, 5);
-        $url = static::API . $prefix;
-        $result = explode(PHP_EOL, $this->fetch($url));
-        
-	foreach ($result as $line) {
-            list($hash,$count) = explode(':', $line);
-            if (trim(strtoupper($prefix . $hash)) === $password) {
-                $this->cache[$password] = (int) $count;
+
+        foreach (explode("\r\n", $response->getBody()->getContents()) as $line) {
+            $result = explode(':', $line);
+            $hash   = $chars . $result[0];
+            $hits   = intval($result[1]);
+
+            if ($hash === $hashedPassword) {
+                if ($getHits === true) {
+                    return $hits;
+                }
+
+                return true;
             }
         }
 
-	return $this->cache[$password];
+        if ($getHits === true) {
+            return 0;
+        }
+
+        return false;
     }
 
-    /**
-     * @param string $password
-     * @return bool
-     */
-    public function isInsecure(string $password): bool
+    protected function getGuzzleClient()
     {
-        return $this->getCount($password) > 0 ;
+        return new \GuzzleHttp\Client([
+            'base_uri' => $this->baseUrl
+        ]);
     }
 }
