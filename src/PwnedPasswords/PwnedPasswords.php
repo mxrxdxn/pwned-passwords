@@ -3,15 +3,15 @@
 namespace PwnedPasswords;
 
 use PwnedPasswords\Exceptions\InvalidPasswordException;
-use PwnedPasswords\Exceptions\InvalidStatusCodeException;
+use PwnedPasswords\Exceptions\InvalidResponseException;
 
 class PwnedPasswords
 {
     protected $baseUrl = "https://api.pwnedpasswords.com";
 
-    public function checkIfPasswordIsBreached(string $password)
+    public function isPwned(string $password, bool $getHits = false)
     {
-        if (! empty($password)) {
+        if (empty($password)) {
             throw new InvalidPasswordException("There was no password to check.");
         }
 
@@ -23,17 +23,25 @@ class PwnedPasswords
         $response = $client->get(sprintf('/range/%s', $chars));
 
         if ($response->getStatusCode() !== 200) {
-            throw new InvalidStatusCodeException(sprintf("Invalid status code returned from API request (%s), expected 200.", $response->getStatusCode()));
+            throw new InvalidResponseException(sprintf("Invalid status code returned from API request (%s), expected 200.", $response->getStatusCode()));
         }
 
-        foreach (explode(PHP_EOL, $response->getBody()->getContents()) as $line) {
+        foreach (explode("\r\n", $response->getBody()->getContents()) as $line) {
             $result = explode(':', $line);
             $hash   = $chars . $result[0];
-            $hits   = $result[1];
+            $hits   = intval($result[1]);
 
             if ($hash === $hashedPassword) {
+                if ($getHits === true) {
+                    return $hits;
+                }
+
                 return true;
             }
+        }
+
+        if ($getHits === true) {
+            return 0;
         }
 
         return false;
