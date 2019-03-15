@@ -8,7 +8,7 @@ A library to query Troy Hunt's Pwned Passwords service to see whether or not a p
 # Installation
 Installing PwnedPasswords is made easy via Composer. Just require the package using the command below, and you are ready to go.
 
-    composer require ron-maxweb/pwned-passwords
+    composer require mxrxdxn/pwned-passwords
     
 # Usage
 To use the library, you can do something along the lines of the following.
