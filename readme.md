@@ -3,7 +3,7 @@ A library to query Troy Hunt's Pwned Passwords service to see whether or not a p
 
 # Requirements
 
- - PHP >= 7.1.3
+ - PHP >= 7.2
 
 # Installation
 Installing PwnedPasswords is made easy via Composer. Just require the package using the command below, and you are ready to go.
