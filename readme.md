@@ -21,7 +21,7 @@ $password = '123456789';
 
 $insecure = $pp->isPwned($password); //returns true or false
 ```
-The `isInsecure` method will return true if the password has been found in the PwnedPasswords API, and false if not.
+The `isPwned` method will return true if the password has been found in the PwnedPasswords API, and false if not.
 
 If you want to build your own thresholds (Ex. display a warning if the password has been found more than once and an error if more than 5x) you can call the `isPwned` method like below.
 ```php
