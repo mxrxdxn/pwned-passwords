@@ -2,6 +2,7 @@
 
 namespace PwnedPasswords;
 
+use GuzzleHttp\Client;
 use PwnedPasswords\Exceptions\InvalidPasswordException;
 use PwnedPasswords\Exceptions\InvalidResponseException;
 
@@ -9,7 +10,15 @@ class PwnedPasswords
 {
     protected $baseUrl = "https://api.pwnedpasswords.com";
 
-    public function isPwned(string $password, bool $getHits = false)
+    /**
+     * @param string     $password
+     * @param false|bool $getHits
+     *
+     * @return bool|int
+     * @throws InvalidPasswordException
+     * @throws InvalidResponseException
+     */
+    public function isPwned($password, $getHits = false)
     {
         if (empty($password)) {
             throw new InvalidPasswordException("There was no password to check.");
@@ -47,9 +56,14 @@ class PwnedPasswords
         return false;
     }
 
+    /**
+     * Return Guzzle client.
+     *
+     * @return Client
+     */
     protected function getGuzzleClient()
     {
-        return new \GuzzleHttp\Client([
+        return new Client([
             'base_uri' => $this->baseUrl
         ]);
     }
